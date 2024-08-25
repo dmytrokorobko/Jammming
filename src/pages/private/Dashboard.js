@@ -12,14 +12,17 @@ export const Dashboard = () => {
       dispatch(getUsernameThunk({navigate}));
    },[dispatch, navigate]);
 
-   console.log(user.name);
    return (
       <>
          <header>
             <h1>Dashboard</h1>
          </header>
          <section>
-            <h2>Hello, {user.name ? (<Link to={user.urlSpotify} target="_blank"><img src={user.avatar} alt="avatar"/>{user.name}</Link>) : 'guest'}</h2>
+            <div>
+               <h2>Hello, {user.name ? (<Link to={user.urlSpotify} target="_blank"><img src={user.avatar} alt="avatar"/>{user.name}</Link>) : 'guest'}</h2>
+               <p><Link to='/logout'>Logout</Link></p>
+            </div>
+            
          </section>
          <footer>
 

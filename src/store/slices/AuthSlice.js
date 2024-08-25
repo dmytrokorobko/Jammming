@@ -15,7 +15,14 @@ const AuthSlice = createSlice({
       error: null
    },
    reducers: {
-      
+      logout: (state) => {
+         state.accessToken = null;
+         state.user.name = null;
+         state.user.urlSpotify = null;
+         state.user.avatar = null;
+         state.loading = false;
+         state.error = null;
+      }
    },
    extraReducers: (builder) => {
       builder
@@ -50,5 +57,5 @@ const AuthSlice = createSlice({
    }
 });
 
-export const {setCodeVerifier} = AuthSlice.actions;
+export const {logout} = AuthSlice.actions;
 export default AuthSlice.reducer;

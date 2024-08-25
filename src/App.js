@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import './App.css';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
 import { Home } from './pages/public/Home';
@@ -16,18 +15,18 @@ function App() {
     <Provider store={store}>
       <BrowserRouter basename='/'>
         <Routes>
-          <Route path='/' element={<BaseLayout />}>
-            {/* Public Routes */}
-            <Route index element={<Home />} />
+          {/* Public Routes */}
+          <Route element={<BaseLayout />}>
+            <Route path='/' element={<Home />} />
             <Route path='login' element={<Login />} />
             <Route path='auth' element={<Auth />} />
             <Route path='logout' element={<Logout />} />
             <Route path='*' element={<Page404 />} />
+          </Route>
 
             {/* Private Routes */}
-            <Route element={<PrivateRoute />}>
-              <Route path='dashboard' element={<Dashboard />} />              
-            </Route>
+          <Route element={<PrivateRoute />}>
+            <Route path='dashboard' element={<Dashboard />} />              
           </Route>
         </Routes>                    
       </BrowserRouter>
