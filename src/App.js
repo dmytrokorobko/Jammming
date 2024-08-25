@@ -1,24 +1,37 @@
-import logo from './logo.svg';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
+import { Provider } from 'react-redux';
+import { store } from './store/store';
+import { Home } from './pages/public/Home';
+import { Login } from './pages/public/Login';
+import { Auth } from './pages/public/Auth';
+import { PrivateRoute } from './routes/PrivateRoute';
+import { Dashboard } from './pages/private/Dashboard';
+import { Logout } from './pages/public/Logout';
+import { Page404 } from './pages/public/Page404';
+import { BaseLayout } from './layouts/BaseLayout';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Provider store={store}>
+      <BrowserRouter basename='/'>
+        <Routes>
+          <Route path='/' element={<BaseLayout />}>
+            {/* Public Routes */}
+            <Route index element={<Home />} />
+            <Route path='login' element={<Login />} />
+            <Route path='auth' element={<Auth />} />
+            <Route path='logout' element={<Logout />} />
+            <Route path='*' element={<Page404 />} />
+
+            {/* Private Routes */}
+            <Route element={<PrivateRoute />}>
+              <Route path='dashboard' element={<Dashboard />} />              
+            </Route>
+          </Route>
+        </Routes>                    
+      </BrowserRouter>
+    </Provider>
   );
 }
 
