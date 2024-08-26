@@ -30,6 +30,33 @@ const TracksSlice = createSlice({
          const {id, name} = action.payload;
          const index = state.userPlaylists.findIndex(playlist => playlist.id === id);
          if (index !== -1) state.userPlaylists[index].name = name;
+         state.selectedPlaylist = state.userPlaylists[index];
+      },
+      removePlaylistName: (state, action) => {
+         state.userPlaylists = state.userPlaylists.filter(playlist => playlist.id !== action.payload.id && playlist.name !== action.payload.name);
+      },
+      addTrackToSelectedPlaylist: (state, action) => {
+         if (!state.selectedPlaylist) {
+            state.error = 'No selected playlist to add this track';
+            return;
+         } 
+
+         if (!state.playlistTracks) state.playlistTracks = [];
+         if (state.playlistTracks.some(track => track.id === action.payload.id)) {
+            state.error = 'Selected track is already in your playlist';
+            state.spotifyTracks = state.spotifyTracks.filter(track => track.id !== action.payload.id);
+            return;
+         } 
+         state.playlistTracks.push(action.payload);
+         state.spotifyTracks = state.spotifyTracks.filter(track => track.id !== action.payload.id);
+      },
+      removeTrackFromSelectedPlaylist: (state, action) => {
+         state.playlistTracks = state.playlistTracks.filter(track => track.id !== action.payload.id);
+
+         if (!state.spotifyTracks) state.spotifyTracks = [];
+         if (!state.spotifyTracks.some(track => track.id === action.payload.id)) {
+            state.spotifyTracks.unshift(action.payload);
+         } 
       }
    },
    extraReducers: builder => {
@@ -90,4 +117,4 @@ const TracksSlice = createSlice({
 });
 
 export default TracksSlice.reducer;
-export const {selectPlaylist, clearSelectedPlaylist, createPlaylistName, updatePlaylistName} = TracksSlice.actions;
+export const {selectPlaylist, clearSelectedPlaylist, createPlaylistName, updatePlaylistName,removePlaylistName, addTrackToSelectedPlaylist, removeTrackFromSelectedPlaylist} = TracksSlice.actions;

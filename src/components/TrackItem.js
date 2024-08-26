@@ -1,4 +1,4 @@
-export const TrackItem = ({track}) => {
+export const TrackItem = ({track, isServerList, onButtonClick}) => {
    return (
       <div className="track-item">
          <div>
@@ -11,7 +11,7 @@ export const TrackItem = ({track}) => {
             </div>
          </div>
          <div className="track-item-controls">
-            <button className="track-item-add">+</button>
+            <button className="track-item-add" onClick={onButtonClick}>{isServerList ? '+' : '-'}</button>
          </div>
       </div>
    )

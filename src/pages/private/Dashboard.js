@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux"
 import { getUsernameThunk } from "../../store/slices/thunks/auth/getUsernameThunk";
-import { Link, useNavigate } from "react-router-dom";
-import { DiskSpinner } from "../../components/DiskSpinner";
+import { useNavigate } from "react-router-dom";
 import { getRecommendationThunk } from "../../store/slices/thunks/tracks/getRecommendationThunk";
-import { TrackItem } from "../../components/TrackItem";
 import { getFilterThunk } from "../../store/slices/thunks/tracks/getFilterThunk";
 import { getUserPlaylistsThunk } from "../../store/slices/thunks/tracks/getUserPlaylistsThunk";
-import { PlaylistItem } from "../../components/PlaylistItem";
-import { clearSelectedPlaylist, createPlaylistName, selectPlaylist, updatePlaylistName } from "../../store/slices/TracksSlice";
+import { addTrackToSelectedPlaylist, clearSelectedPlaylist, createPlaylistName, removePlaylistName, removeTrackFromSelectedPlaylist, selectPlaylist, updatePlaylistName } from "../../store/slices/TracksSlice";
 import { getPlaylistTracksThunk } from "../../store/slices/thunks/tracks/getPlaylistTracksThunk";
 import { generateUniqueId } from "../../helper/generateUniqueId";
+import { ServerNotifications } from "../../components/ServerNotifications";
+import { UserAccountCorner } from "../../components/UserAccountCorner";
+import { Filter } from "../../components/Filter";
+import { ServerTracks } from "../../components/ServerTracks";
+import { UserPlaylistTop } from "../../components/UserPlaylistTop";
+import { UserCreateUpdatePlaylistName } from "../../components/UserCreateUpdatePlaylistName";
+import { UserPlaylistsList } from "../../components/UserPlaylistsList";
+import { UserPlaylistTracks } from "../../components/userPlaylistTracks";
 
 export const Dashboard = () => {
    const user = useSelector(state => state.auth.user);
@@ -24,8 +29,13 @@ export const Dashboard = () => {
    const navigate = useNavigate();
    const [filterText, setFilterText] = useState('');
    const [loading, setLoading] = useState(false);
+   const [clientError, setClientError] = useState('');
    const [firstLoad, setFirstLoad] = useState(true);
    const [newPlaylistText, setNewPlaylistText] = useState('');
+
+   useEffect(() => {
+      
+   })
 
    useEffect(() => {
       setLoading(true);
@@ -62,8 +72,17 @@ export const Dashboard = () => {
       }
    }, [filterText]);
 
-   const handlePlaylistClick = async(playlist) => {
-      console.log(playlist);
+   useEffect(() => {
+      const clientErrorTimer = setTimeout(() => {
+         setClientError('');
+      }, 5000);
+
+      return () => {
+         clearTimeout(clientErrorTimer);
+      }
+   }, [clientError])
+
+   const handlePlaylistItemClick = async(playlist) => {
       await dispatch(selectPlaylist(playlist));      
       setNewPlaylistText(playlist.name);
       await dispatch(getPlaylistTracksThunk({playlistId: playlist.id, navigate}));
@@ -75,7 +94,10 @@ export const Dashboard = () => {
    }
 
    const handlePlaylistName = () => {
-      if (!newPlaylistText || newPlaylistText.length === 0) return;
+      if (!newPlaylistText || newPlaylistText.length === 0) {
+         setClientError('Enter playlist name');
+         return;
+      } 
 
       if (selectedPlaylist && selectedPlaylist.id.length > 0) {
          //update name
@@ -91,74 +113,49 @@ export const Dashboard = () => {
             name: newPlaylistText
          }
          dispatch(createPlaylistName(newPlaylist));
+         setNewPlaylistText('');
       }
-      
+   }
+
+   const handleDeletePlaylistName = (playlist) => {
+      console.log(playlist);
+      if (window.confirm('Are you sure to delete this playlist with all tracks?')) {
+         dispatch(removePlaylistName(playlist));
+         handleBackClick();
+      }
+   }
+
+   const addTrackToUserList = (track) => {
+      if (selectedPlaylist) {
+         dispatch(addTrackToSelectedPlaylist(track));
+      } else setClientError('First choose playlist to add tracks');
+   }
+
+   const removeTrackFromUserList = (track) => {
+      if (selectPlaylist) {
+         dispatch(removeTrackFromSelectedPlaylist(track));
+      }
    }
 
    return (
       <>
          <header>
-            <div className="server-notifications">
-               {serverLoading && <div className="server-loading">Loading...</div>}
-               {serverError && <div className="server-error">Error: {serverError}</div>}
-            </div>
-            <div className="username">
-               <p><Link to='/logout'>Logout</Link></p>
-               <h2>Hello, {user.name ? (<Link to={user.urlSpotify} target="_blank">{user.name}<img src={user.avatar} alt="avatar"/></Link>) : 'guest'}</h2>
-            </div>
+            <ServerNotifications serverLoading={serverLoading} serverError={serverError} clientError={clientError} />
+            <UserAccountCorner user={user} />
          </header>
          <section>             
             <div className="lists">
                <div className="list spotify-list">
-                  <div className="filter-text">
-                     <label htmlFor="filterText">Filter:</label>
-                     <input type="text" id="filterText" value={filterText} onChange={(e) => setFilterText(e.target.value)} />
-                     <DiskSpinner loading={loading} />
-                  </div>
-                  <div className="list-tracks">
-                     {!filterText || filterText.length === 0 ? <h3>Recommended tracks</h3> : ''}
-                     {tracks ? (
-                        <ul>
-                           {tracks.map(track => <li className="li-track-item" key={track.id}><TrackItem track={track} /></li>)}
-                        </ul>
-                     ) : <p>No tracks to show</p>}
-                  </div>
+                  <Filter filterText={filterText} setFilterText={setFilterText} loading={loading} />
+                  <ServerTracks filterText={filterText} tracks={tracks} addTrackToUserList={addTrackToUserList} />
                </div>
                <div className="list user-list">
-                  <div className={selectedPlaylist && "playlist-top"}>
-                     {selectedPlaylist && <button onClick={handleBackClick}>Back</button>}
-                     <h2>{selectedPlaylist ? selectedPlaylist.name : 'My Playlists'}</h2>
-                     {selectedPlaylist && <button>Delete</button>}
-                  </div>
-                  <div className="filter-text">
-                     <label htmlFor="createPlaylistText">Name:</label>
-                     <input type="text" id="createPlaylistText" value={newPlaylistText} onChange={(e) => setNewPlaylistText(e.target.value)} />   
-                     <button className="create-new-playlist-button" onClick={handlePlaylistName}>{selectedPlaylist ? 'Update' : 'Create'}</button>                  
-                  </div>
+                  <UserPlaylistTop selectedPlaylist={selectedPlaylist} handleBackClick={handleBackClick} handleDeleteClick={handleDeletePlaylistName} />
+                  <UserCreateUpdatePlaylistName newPlaylistText={newPlaylistText} setNewPlaylistText={setNewPlaylistText} handlePlaylistName={handlePlaylistName} selectedPlaylist={selectedPlaylist} />
                   {(!selectedPlaylist) ? (
-                     <div className="list-user-playlists">
-                        {userPlaylists ? (
-                           <ul>
-                              {userPlaylists.map(playlist => <li className="li-playlist-item" key={playlist.id} onClick={() => handlePlaylistClick(playlist)}><PlaylistItem playlist={playlist} /></li>)}
-                           </ul>
-                        ) : <p>No playlists to show</p>}
-                     </div>
+                     <UserPlaylistsList userPlaylists={userPlaylists} handlePlaylistItemClick={handlePlaylistItemClick} />
                   ) : (
-                     <div className="list-tracks">
-                        {playlistTracks ? (
-                           <ul>
-                              {playlistTracks.map(track => <li className="li-track-item" key={track.id}><TrackItem track={track} /></li>)}
-                           </ul>
-                        ) : (
-                           serverLoading ? (
-                              <div className="list-usertracks-loading">
-                                 <div className={serverLoading ? 'cd-disk show' : 'cd-disk'}></div>
-                              </div>
-                           ) : (
-                              <p>No tracks to show</p>
-                           )
-                        ) }
-                     </div>
+                     <UserPlaylistTracks playlistTracks={playlistTracks} serverLoading={serverLoading} removeTrackFromUserList={removeTrackFromUserList} />
                   )}                  
                </div>
             </div>            
