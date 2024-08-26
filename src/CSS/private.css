@@ -10,10 +10,14 @@
   color: white;
 }
 
-header {
+.PrivateApp header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding: 10px 20px 30px;
+}
+
+.PrivateApp header .server-notifications .server-error {
+  color: #ff0000;
 }
 
 .username {
@@ -50,8 +54,24 @@ header {
   border-radius: 50px;
 }
 
-section {
+.PrivateApp section {
   padding: 0 20px;
+  flex-grow: 1;
+}
+
+.playlist-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.list-usertracks-loading {
+  display: flex;
+  justify-content: center;
+}
+
+.list .playlist-top h2 {
+  margin-bottom: 0;
 }
 
 .lists {
@@ -68,6 +88,10 @@ section {
   padding: 20px;
   width: 50%;
 }
+
+.list h2 {
+  margin-bottom: 20px;
+}
  
 .filter-text {
   display: flex;
@@ -79,13 +103,13 @@ section {
   padding-bottom: 20px;
 }
 
-input {
+.PrivateApp input {
   padding: 10px 15px;
   min-width: 60%;
   font-size: 1rem;
 }
 
-.li-track-item {
+.li-track-item, .li-playlist-item {
   padding: 10px 0;
   text-align: left;
   border-bottom: 1px solid #fff;
@@ -109,7 +133,7 @@ input {
   flex-wrap: wrap;
 }
 
-button {
+.PrivateApp button {
   font-weight: 700;
   font-size: 1.5rem;
   color: #fff;
@@ -127,10 +151,14 @@ button {
   cursor: pointer;
 }
 
+.li-playlist-item:hover {
+  color: #dadada;
+}
 
 
 
-footer {
+
+.PrivateApp footer {
   padding: 20px 0;
 }
 
