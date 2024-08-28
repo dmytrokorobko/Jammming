@@ -21,7 +21,12 @@ export const getTokenThunk = createAsyncThunk(
          });
 
          //set refreshToken
-         document.cookie = `refreshToken=${response.data.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax;`;
+         //to cookie
+         //document.cookie = `refreshToken=${response.data.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax;`;
+         //to sessionStorage
+         sessionStorage.setItem('refreshToken', response.data.refresh_token);
+         localStorage.setItem('expiresIn', Date.now() + response.data.expires_in * 1000);
+         window.history.replaceState({}, document.title, '/');
 
          //set accessToken
          return response.data.access_token;

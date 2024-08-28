@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { getTokenThunk } from "./thunks/auth/getTokenThunk";
 import { getUsernameThunk } from "./thunks/auth/getUsernameThunk";
+import { refreshAccessTokenThunk } from "./thunks/auth/refreshAccessTokenThunk";
 
 const AuthSlice = createSlice({
    name: 'auth',
@@ -51,6 +52,19 @@ const AuthSlice = createSlice({
             state.user.avatar = action.payload.images[1].url;
          })
          .addCase(getUsernameThunk.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+         })
+         //refreshAccessTokenThunk
+         .addCase(refreshAccessTokenThunk.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+         })
+         .addCase(refreshAccessTokenThunk.fulfilled, (state, action) => {
+            state.loading = false;
+            state.accessToken = action.payload;
+         })
+         .addCase(refreshAccessTokenThunk.rejected, (state, action) => {
             state.loading = false;
             state.error = action.payload;
          })

@@ -16,6 +16,7 @@ import { UserPlaylistTop } from "../../components/UserPlaylistTop";
 import { UserCreateUpdatePlaylistName } from "../../components/UserCreateUpdatePlaylistName";
 import { UserPlaylistsList } from "../../components/UserPlaylistsList";
 import { UserPlaylistTracks } from "../../components/userPlaylistTracks";
+import { refreshAccessTokenThunk } from "../../store/slices/thunks/auth/refreshAccessTokenThunk";
 
 export const Dashboard = () => {
    const user = useSelector(state => state.auth.user);
@@ -33,9 +34,25 @@ export const Dashboard = () => {
    const [firstLoad, setFirstLoad] = useState(true);
    const [newPlaylistText, setNewPlaylistText] = useState('');
 
+   //update accessToken with resfreshToken
    useEffect(() => {
-      
-   })
+      const interval = setInterval(() => {
+         const expiresIn = localStorage.getItem('expiresIn');
+         if (Date.now() > expiresIn) {
+            const refreshToken = sessionStorage.getItem('refreshToken');
+            if (!refreshToken) return navigate('/login');
+            try {
+               dispatch(refreshAccessTokenThunk({refreshToken}));
+            } catch(err) {
+               return navigate('/login');
+            }            
+         }
+      }, 5 * 60 * 1000);
+
+      return (() => {
+         clearInterval(interval);
+      });
+   }, []);
 
    useEffect(() => {
       setLoading(true);

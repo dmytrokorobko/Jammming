@@ -8,7 +8,7 @@ const redirectUri = process.env.REACT_APP_REDIRECT_URI;
 
 export const Login = () => {
    const dispatch = useDispatch();
-
+   
    useEffect(() => {
       const handleLogin = async () => {
          const scopes = 'user-read-private playlist-modify-private playlist-modify-public';
@@ -37,7 +37,7 @@ export const Login = () => {
 
    return (
       <>
-         <h1>Loging...</h1>
+         <h1>Login...</h1>
       </>
    )
 }
