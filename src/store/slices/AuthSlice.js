@@ -10,7 +10,8 @@ const AuthSlice = createSlice({
       user: {
          name: null,
          urlSpotify: null,
-         avatar: null
+         avatar: null,
+         id: null
       },
       loading: false,
       error: null
@@ -21,6 +22,7 @@ const AuthSlice = createSlice({
          state.user.name = null;
          state.user.urlSpotify = null;
          state.user.avatar = null;
+         state.user.id = null;
          state.loading = false;
          state.error = null;
       }
@@ -50,6 +52,7 @@ const AuthSlice = createSlice({
             state.user.name = action.payload.display_name;
             state.user.urlSpotify = action.payload.external_urls.spotify;
             state.user.avatar = action.payload.images[1].url;
+            state.user.id = action.payload.id;
          })
          .addCase(getUsernameThunk.rejected, (state, action) => {
             state.loading = false;

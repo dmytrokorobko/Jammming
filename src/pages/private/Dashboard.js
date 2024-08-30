@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { getRecommendationThunk } from "../../store/slices/thunks/tracks/getRecommendationThunk";
 import { getFilterThunk } from "../../store/slices/thunks/tracks/getFilterThunk";
 import { getUserPlaylistsThunk } from "../../store/slices/thunks/tracks/getUserPlaylistsThunk";
-import { addTrackToSelectedPlaylist, clearSelectedPlaylist, createPlaylistName, removePlaylistName, removeTrackFromSelectedPlaylist, selectPlaylist, updatePlaylistName } from "../../store/slices/TracksSlice";
+import { addTrackToSelectedPlaylist, clearSelectedPlaylist, clearServerError, createPlaylistName, removePlaylistName, removeTrackFromSelectedPlaylist, selectPlaylist, updatePlaylistName } from "../../store/slices/TracksSlice";
 import { getPlaylistTracksThunk } from "../../store/slices/thunks/tracks/getPlaylistTracksThunk";
 import { generateUniqueId } from "../../helper/generateUniqueId";
 import { ServerNotifications } from "../../components/ServerNotifications";
@@ -17,6 +17,9 @@ import { UserCreateUpdatePlaylistName } from "../../components/UserCreateUpdateP
 import { UserPlaylistsList } from "../../components/UserPlaylistsList";
 import { UserPlaylistTracks } from "../../components/userPlaylistTracks";
 import { refreshAccessTokenThunk } from "../../store/slices/thunks/auth/refreshAccessTokenThunk";
+import { addTrackToUserListThunk } from "../../store/slices/thunks/tracks/addTrackToUserListThunk";
+import { createPlaylistThunk } from "../../store/slices/thunks/tracks/createPlaylistThunk";
+import { deletePlaylistThunk } from "../../store/slices/thunks/tracks/deletePlaylistThunk";
 
 export const Dashboard = () => {
    const user = useSelector(state => state.auth.user);
@@ -92,12 +95,13 @@ export const Dashboard = () => {
    useEffect(() => {
       const clientErrorTimer = setTimeout(() => {
          setClientError('');
+         dispatch(clearServerError());
       }, 5000);
 
       return () => {
          clearTimeout(clientErrorTimer);
       }
-   }, [clientError])
+   }, [clientError, serverError])
 
    const handlePlaylistItemClick = async(playlist) => {
       await dispatch(selectPlaylist(playlist));      
@@ -110,7 +114,7 @@ export const Dashboard = () => {
       setNewPlaylistText('');
    }
 
-   const handlePlaylistName = () => {
+   const handlePlaylistName = async () => {
       if (!newPlaylistText || newPlaylistText.length === 0) {
          setClientError('Enter playlist name');
          return;
@@ -130,22 +134,38 @@ export const Dashboard = () => {
             name: newPlaylistText
          }
          dispatch(createPlaylistName(newPlaylist));
-         setNewPlaylistText('');
+         try {
+            await dispatch(createPlaylistThunk({playlist: newPlaylist})).unwrap();
+            setNewPlaylistText('');
+         } catch(err) {
+            dispatch(removePlaylistName(newPlaylist));
+         }         
       }
    }
 
-   const handleDeletePlaylistName = (playlist) => {
-      console.log(playlist);
-      if (window.confirm('Are you sure to delete this playlist with all tracks?')) {
-         dispatch(removePlaylistName(playlist));
-         handleBackClick();
+   const handleDeletePlaylistName = async(playlist) => {
+      if (window.confirm('Are you sure to delete this playlist with all tracks inside?')) {
+         try {
+            await dispatch(deletePlaylistThunk({playlist, navigate})).unwrap();
+            dispatch(removePlaylistName(playlist));
+            handleBackClick();
+         } catch(err) {
+
+         }
       }
    }
 
-   const addTrackToUserList = (track) => {
+   const addTrackToUserList = async (track) => {
       if (selectedPlaylist) {
          dispatch(addTrackToSelectedPlaylist(track));
-      } else setClientError('First choose playlist to add tracks');
+         if (!playlistTracks.some(t => t.id === track.id)) {
+            try {
+               await dispatch(addTrackToUserListThunk({playlist: selectedPlaylist, track, navigate})).unwrap();
+            } catch(err) {
+               dispatch(removeTrackFromSelectedPlaylist(track));
+            }            
+         } 
+      } else setClientError('First select playlist to add tracks');
    }
 
    const removeTrackFromUserList = (track) => {

@@ -41,7 +41,7 @@ export const Auth = () => {
       }
 
       handleAuth();      
-   }, [dispatch, code, codeVerifier]);
+   }, []);
 
    useEffect(() => {
       if (navigateTo) return navigate(navigateTo);

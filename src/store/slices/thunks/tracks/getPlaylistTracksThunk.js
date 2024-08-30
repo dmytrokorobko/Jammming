@@ -23,7 +23,8 @@ export const getPlaylistTracksThunk = createAsyncThunk(
             id: item.track.id,
             name: item.track.name,
             artist: item.track.artists.map(artist => artist.name).join(', '),
-            album: item.track.album.name
+            album: item.track.album.name,
+            type: item.track.type
          }));
 
          return extractedTracks;

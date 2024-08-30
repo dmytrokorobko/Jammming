@@ -11,7 +11,7 @@ export const Login = () => {
    
    useEffect(() => {
       const handleLogin = async () => {
-         const scopes = 'user-read-private playlist-modify-private playlist-modify-public';
+         const scope = 'user-read-private playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private';
 
          const codeVerifier = generateCodeVerifier(64);
          const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -23,7 +23,7 @@ export const Login = () => {
          const params = {
             response_type: 'code',
             client_id: clientId,
-            scopes,
+            scope,
             code_challenge_method: 'S256',
             code_challenge: codeChallenge,
             redirect_uri: redirectUri,

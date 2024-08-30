@@ -3,6 +3,9 @@ import { getRecommendationThunk } from "./thunks/tracks/getRecommendationThunk";
 import { getFilterThunk } from "./thunks/tracks/getFilterThunk";
 import { getUserPlaylistsThunk } from "./thunks/tracks/getUserPlaylistsThunk";
 import { getPlaylistTracksThunk } from "./thunks/tracks/getPlaylistTracksThunk";
+import { addTrackToUserListThunk } from "./thunks/tracks/addTrackToUserListThunk";
+import { createPlaylistThunk } from "./thunks/tracks/createPlaylistThunk";
+import { deletePlaylistThunk } from "./thunks/tracks/deletePlaylistThunk";
 
 const TracksSlice = createSlice({
    name: 'tracks',
@@ -15,6 +18,9 @@ const TracksSlice = createSlice({
       error: null
    },
    reducers: {
+      clearServerError: (state) => {
+         state.error = null;
+      },
       selectPlaylist: (state, action) => {
          state.selectedPlaylist = action.payload;
          state.playlistTracks = null;
@@ -113,8 +119,49 @@ const TracksSlice = createSlice({
             state.loading = false;
             state.error = action.payload;
          })
+         //createPlaylistThunk
+         .addCase(createPlaylistThunk.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+         })
+         .addCase(createPlaylistThunk.fulfilled, (state, action) => {
+            state.loading = false;     
+            state.userPlaylists = state.userPlaylists.map(pl => 
+               (pl.id === action.meta.arg.playlist.id && pl.name === action.meta.arg.playlist.name) 
+               ? {...pl, id: action.payload} 
+               : pl);
+         })
+         .addCase(createPlaylistThunk.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+         })
+         //deletePlaylistThunk
+         .addCase(deletePlaylistThunk.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+         })
+         .addCase(deletePlaylistThunk.fulfilled, (state, action) => {
+            state.loading = false;            
+         })
+         .addCase(deletePlaylistThunk.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+         })
+         //addTrackToUserListThunk
+         .addCase(addTrackToUserListThunk.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+         })
+         .addCase(addTrackToUserListThunk.fulfilled, (state, action) => {
+            state.loading = false;            
+            //state.playlistTracks = action.payload;
+         })
+         .addCase(addTrackToUserListThunk.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+         })
    }
 });
 
 export default TracksSlice.reducer;
-export const {selectPlaylist, clearSelectedPlaylist, createPlaylistName, updatePlaylistName,removePlaylistName, addTrackToSelectedPlaylist, removeTrackFromSelectedPlaylist} = TracksSlice.actions;
+export const {clearServerError, selectPlaylist, clearSelectedPlaylist, createPlaylistName, updatePlaylistName,removePlaylistName, addTrackToSelectedPlaylist, removeTrackFromSelectedPlaylist} = TracksSlice.actions;
