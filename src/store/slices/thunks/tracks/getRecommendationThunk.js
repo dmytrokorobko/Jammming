@@ -14,13 +14,13 @@ export const getRecommendationThunk = createAsyncThunk(
       } 
 
       try {
-         const response = await axios('https://api.spotify.com/v1/recommendations?seed_artists=4NHQUGzhtTLFvgF5SZesLK&seed_genres=New+Releases&seed_tracks=0c6xIDDpzE81m2q797ordA', {
+         const response = await axios.get('https://api.spotify.com/v1/recommendations?seed_artists=4NHQUGzhtTLFvgF5SZesLK&seed_genres=New+Releases&seed_tracks=0c6xIDDpzE81m2q797ordA', {
                headers: {
                   'Authorization': `Bearer ${accessToken}`
                }
          });
          
-         return getExtractedTracks(response.data.tracks.items);
+         return getExtractedTracks(response.data.tracks);
       } catch (err) {
          console.log(err);
          return asyncThunkError(err, thunkAPI.rejectWithValue);         

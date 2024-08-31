@@ -16,17 +16,16 @@ export const removeTrackFromUserListThunk = createAsyncThunk(
          const data = {
             "tracks": [
                {
-                  "uri": ["spotify:" + track.type + ":" + track.id]
+                  "uri": "spotify:" + track.type + ":" + track.id
                }
             ]
          };
-         console.log(data);
-         console.log(playlist);
-         const response = await axios.delete('https://api.spotify.com/v1/playlists/' + playlist.id + '/tracks', data, {
+         const response = await axios.delete('https://api.spotify.com/v1/playlists/' + playlist.id + '/tracks', {
                headers: {
                   'Authorization': `Bearer ${accessToken}`,
                   'Content-Type' : 'application/json'
-               }
+               },
+               data: data
          });
          return response.data;         
       } catch (err) {

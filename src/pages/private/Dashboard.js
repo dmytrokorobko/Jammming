@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux"
 import { getUsernameThunk } from "../../store/slices/thunks/auth/getUsernameThunk";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +21,7 @@ import { addTrackToUserListThunk } from "../../store/slices/thunks/tracks/addTra
 import { createPlaylistThunk } from "../../store/slices/thunks/tracks/createPlaylistThunk";
 import { deletePlaylistThunk } from "../../store/slices/thunks/tracks/deletePlaylistThunk";
 import { removeTrackFromUserListThunk } from "../../store/slices/thunks/tracks/removeTrackFromUserListThunk";
+import { updatePlaylistThunk } from "../../store/slices/thunks/tracks/updatePlaylistThunk";
 
 export const Dashboard = () => {
    const user = useSelector(state => state.auth.user);
@@ -33,6 +34,9 @@ export const Dashboard = () => {
    const dispatch = useDispatch();
    const navigate = useNavigate();
    const [filterText, setFilterText] = useState('');
+   const [filterOffset, setFilterOffset] = useState(0);
+   const [filterLimit, setFilterLimit] = useState(15);
+   const divSpotifyListRef = useRef(null);
    const [loading, setLoading] = useState(false);
    const [clientError, setClientError] = useState('');
    const [firstLoad, setFirstLoad] = useState(true);
@@ -61,13 +65,17 @@ export const Dashboard = () => {
    useEffect(() => {
       setLoading(true);
       const handleFirstLoad = async() => {
-         await dispatch(getUsernameThunk({navigate}));
-         //await dispatch(getRecommendationThunk({navigate}));
-         await dispatch(getUserPlaylistsThunk(navigate));
-         setLoading(false);
+         try {
+            await dispatch(getUsernameThunk({navigate}));
+            await dispatch(getRecommendationThunk({navigate}));
+            await dispatch(getUserPlaylistsThunk(navigate));
+         } catch (err) {}
+         finally {
+            setLoading(false);
+         }
       }
       handleFirstLoad();
-   },[dispatch, navigate]);
+   },[]);
 
    useEffect(() => {
       if (firstLoad) {
@@ -79,9 +87,11 @@ export const Dashboard = () => {
       const pause = setTimeout(() => {
          const handleFilterText = async() => {
             if (filterText.length === 0) {
-               //await dispatch(getRecommendationThunk({navigate}));
+               await dispatch(getRecommendationThunk({navigate}));
             } else {
+               console.log('from filter query');
                await dispatch(getFilterThunk({filterText, navigate}));
+               setFilterOffset(prev => prev + filterLimit);                  
             }
             setLoading(false);
          }
@@ -102,7 +112,29 @@ export const Dashboard = () => {
       return () => {
          clearTimeout(clientErrorTimer);
       }
-   }, [clientError, serverError])
+   }, [clientError, dispatch, serverError]);
+
+   useEffect(() => {
+      const handleScroll = () => {         
+         if (divSpotifyListRef.current.scrollTop + divSpotifyListRef.current.clientHeight >= divSpotifyListRef.current.scrollHeight) {
+           if (loading) return;
+           setLoading(true);
+           (async() => {
+               try {
+                  console.log('scrolling...filterOffset on call function: ' + filterOffset);
+                  await dispatch(getFilterThunk({filterText, existedSpotifyTracks: tracks, filterLimit, filterOffset, navigate}));
+                  setFilterOffset(prev => prev + filterLimit);                  
+               } catch(err) {}
+               finally {
+                  setLoading(false);
+               }
+           })();           
+         }
+       }       
+       const divElement = divSpotifyListRef.current;
+       divElement.addEventListener('scroll', handleScroll);
+       return () => divElement.removeEventListener('scroll', handleScroll);
+   }, [tracks, filterOffset]);
 
    const handlePlaylistItemClick = async(playlist) => {
       await dispatch(selectPlaylist(playlist));      
@@ -127,7 +159,10 @@ export const Dashboard = () => {
             id: selectedPlaylist.id,
             name: newPlaylistText
          }
-         dispatch(updatePlaylistName(newPlaylist));
+         try {
+            await dispatch(updatePlaylistThunk({playlist: newPlaylist, navigate})).unwrap();
+            dispatch(updatePlaylistName(newPlaylist));
+         } catch (err) {}         
       } else {
          //create name
          const newPlaylist = {
@@ -150,9 +185,7 @@ export const Dashboard = () => {
             await dispatch(deletePlaylistThunk({playlist, navigate})).unwrap();
             dispatch(removePlaylistName(playlist));
             handleBackClick();
-         } catch(err) {
-
-         }
+         } catch(err) {}
       }
    }
 
@@ -162,13 +195,26 @@ export const Dashboard = () => {
             try {
                await dispatch(addTrackToUserListThunk({playlist: selectedPlaylist, track, navigate})).unwrap();
                dispatch(addTrackToSelectedPlaylist(track));
-            } catch(err) {
-               //dispatch(removeTrackFromSelectedPlaylist(track));
-            }            
+            } catch(err) {}            
          } else {
             setClientError('Selected track is already in playlist');
             dispatch(removeSpotifyTrackFromPlaylist(track));
          } 
+         if (filterText.length > 0 && divSpotifyListRef.current.scrollHeight <= divSpotifyListRef.current.clientHeight + 50) {
+            if (!loading) {
+               setLoading(true);
+               (async() => {
+                  try {
+                     console.log('add more items to list: ' + filterOffset);
+                     await dispatch(getFilterThunk({filterText, existedSpotifyTracks: tracks, filterLimit, filterOffset, navigate}));
+                     setFilterOffset(prev => prev + filterLimit);                  
+                  } catch(err) {}
+                  finally {
+                     setLoading(false);
+                  }
+               })();           
+            }                     
+         }
       } else setClientError('First select playlist to add tracks');
    }
 
@@ -177,9 +223,7 @@ export const Dashboard = () => {
          try {
             await dispatch(removeTrackFromUserListThunk({playlist: selectedPlaylist, track, navigate})).unwrap();
             dispatch(removeTrackFromSelectedPlaylist(track));
-         } catch (err) {
-
-         }
+         } catch (err) {}
       }
    }
 
@@ -191,7 +235,7 @@ export const Dashboard = () => {
          </header>
          <section>             
             <div className="lists">
-               <div className="list spotify-list">
+               <div className="list spotify-list" ref={divSpotifyListRef}>
                   <Filter filterText={filterText} setFilterText={setFilterText} loading={loading} />
                   <ServerTracks filterText={filterText} tracks={tracks} addTrackToUserList={addTrackToUserList} />
                </div>

@@ -2,9 +2,9 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { asyncThunkError } from "../../../../helper/asyncThunkError";
 
-export const addTrackToUserListThunk = createAsyncThunk(
-   'tracks/addTrackToUserListThunk',
-   async({playlist, track, navigate}, thunkAPI) => {
+export const updatePlaylistThunk = createAsyncThunk(
+   'tracks/updatePlaylistThunk',
+   async({playlist, navigate}, thunkAPI) => {
       const state = thunkAPI.getState();
       const accessToken = state.auth.accessToken;
       if (!accessToken) {
@@ -14,15 +14,17 @@ export const addTrackToUserListThunk = createAsyncThunk(
 
       try {
          const data = {
-            "uris": ["spotify:" + track.type + ":" + track.id]
+            "name": playlist.name,
+            "description": "",
+            "public": true
          };
-         const response = await axios.post('https://api.spotify.com/v1/playlists/' + playlist.id + '/tracks', data, {
-               headers: {
-                  'Authorization': `Bearer ${accessToken}`,
-                  'Content-Type' : 'application/json'
-               }
-         });
-         return response.data;         
+         const response = await axios.put(`https://api.spotify.com/v1/playlists/${playlist.id}`, data, {
+            headers: {
+               'Authorization': `Bearer ${accessToken}`,
+               'Content-Type': 'application/json'
+            }
+         });         
+         return response.data;
       } catch (err) {
          console.log(err);
          return asyncThunkError(err, thunkAPI.rejectWithValue);         

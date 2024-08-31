@@ -5,7 +5,7 @@ import { asyncThunkError } from "../../../../helper/asyncThunkError";
 
 export const getFilterThunk = createAsyncThunk(
    'tracks/getFilterThunk',
-   async({filterText, navigate}, thunkAPI) => {
+   async({filterText, existedSpotifyTracks = null, filterLimit = 15, filterOffset = 0, navigate}, thunkAPI) => {
       const state = thunkAPI.getState();
       const accessToken = state.auth.accessToken;
       if (!accessToken) {
@@ -17,13 +17,14 @@ export const getFilterThunk = createAsyncThunk(
 
       try {
          filterText = filterText.split(' ').join('+');
-         const response = await axios('https://api.spotify.com/v1/search?q=' + filterText + '&type=album%2Cartist%2Ctrack', {
+         const response = await axios.get('https://api.spotify.com/v1/search?q=' + filterText + '&type=album%2Cartist%2Ctrack&limit=' + filterLimit + '&offset=' + filterOffset, {
                headers: {
                   'Authorization': `Bearer ${accessToken}`
                }
          });
-         
-         return getExtractedTracks(response.data.tracks.items);
+         const newList = getExtractedTracks(response.data.tracks.items);
+         if (existedSpotifyTracks) newList.unshift(...existedSpotifyTracks);
+         return newList;
       } catch (err) {
          console.log(err);
          return asyncThunkError(err, thunkAPI.rejectWithValue);         

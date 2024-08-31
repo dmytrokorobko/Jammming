@@ -7,6 +7,7 @@ import { addTrackToUserListThunk } from "./thunks/tracks/addTrackToUserListThunk
 import { createPlaylistThunk } from "./thunks/tracks/createPlaylistThunk";
 import { deletePlaylistThunk } from "./thunks/tracks/deletePlaylistThunk";
 import { removeTrackFromUserListThunk } from "./thunks/tracks/removeTrackFromUserListThunk";
+import { updatePlaylistThunk } from "./thunks/tracks/updatePlaylistThunk";
 
 const TracksSlice = createSlice({
    name: 'tracks',
@@ -31,7 +32,7 @@ const TracksSlice = createSlice({
          state.playlistTracks = null;
       },
       createPlaylistName: (state, action) => {
-         state.userPlaylists.push(action.payload);
+         state.userPlaylists.unshift(action.payload);
       },
       updatePlaylistName: (state, action) => {
          const {id, name} = action.payload;
@@ -135,6 +136,19 @@ const TracksSlice = createSlice({
                : pl);
          })
          .addCase(createPlaylistThunk.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+         })
+         //updatePlaylistThunk
+         .addCase(updatePlaylistThunk.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+         })
+         .addCase(updatePlaylistThunk.fulfilled, (state, action) => {
+            state.loading = false;     
+            //do nothing, because reducer already did
+         })
+         .addCase(updatePlaylistThunk.rejected, (state, action) => {
             state.loading = false;
             state.error = action.payload;
          })
