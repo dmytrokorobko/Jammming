@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { asyncThunkError } from "../../../../helper/asyncThunkError";
 
 const clientId = process.env.REACT_APP_CLIENT_ID;
 
@@ -23,7 +24,7 @@ export const refreshAccessTokenThunk = createAsyncThunk(
          } else rejectWithValue('Failed to refresh access token');
       } catch(err) {
          console.log(err);
-         return rejectWithValue(err.response?.data?.message || 'An error occurred');
+         return asyncThunkError(err, rejectWithValue);         
       }      
    }
 )

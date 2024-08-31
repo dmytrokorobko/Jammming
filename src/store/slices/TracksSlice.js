@@ -6,6 +6,7 @@ import { getPlaylistTracksThunk } from "./thunks/tracks/getPlaylistTracksThunk";
 import { addTrackToUserListThunk } from "./thunks/tracks/addTrackToUserListThunk";
 import { createPlaylistThunk } from "./thunks/tracks/createPlaylistThunk";
 import { deletePlaylistThunk } from "./thunks/tracks/deletePlaylistThunk";
+import { removeTrackFromUserListThunk } from "./thunks/tracks/removeTrackFromUserListThunk";
 
 const TracksSlice = createSlice({
    name: 'tracks',
@@ -46,7 +47,6 @@ const TracksSlice = createSlice({
             state.error = 'No selected playlist to add this track';
             return;
          } 
-
          if (!state.playlistTracks) state.playlistTracks = [];
          if (state.playlistTracks.some(track => track.id === action.payload.id)) {
             state.error = 'Selected track is already in your playlist';
@@ -63,6 +63,9 @@ const TracksSlice = createSlice({
          if (!state.spotifyTracks.some(track => track.id === action.payload.id)) {
             state.spotifyTracks.unshift(action.payload);
          } 
+      },
+      removeSpotifyTrackFromPlaylist: (state, action) => {
+         state.spotifyTracks = state.spotifyTracks.filter(track => track.id !== action.payload.id);
       }
    },
    extraReducers: builder => {
@@ -141,7 +144,8 @@ const TracksSlice = createSlice({
             state.error = null;
          })
          .addCase(deletePlaylistThunk.fulfilled, (state, action) => {
-            state.loading = false;            
+            state.loading = false;
+            //do nothing, because reducer already did            
          })
          .addCase(deletePlaylistThunk.rejected, (state, action) => {
             state.loading = false;
@@ -154,9 +158,22 @@ const TracksSlice = createSlice({
          })
          .addCase(addTrackToUserListThunk.fulfilled, (state, action) => {
             state.loading = false;            
-            //state.playlistTracks = action.payload;
+            //do nothing, because reducer already did
          })
          .addCase(addTrackToUserListThunk.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+         })
+         //removeTrackFromUserListThunk
+         .addCase(removeTrackFromUserListThunk.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+         })
+         .addCase(removeTrackFromUserListThunk.fulfilled, (state, action) => {
+            state.loading = false;            
+            //do nothing, because reducer already did
+         })
+         .addCase(removeTrackFromUserListThunk.rejected, (state, action) => {
             state.loading = false;
             state.error = action.payload;
          })
@@ -164,4 +181,4 @@ const TracksSlice = createSlice({
 });
 
 export default TracksSlice.reducer;
-export const {clearServerError, selectPlaylist, clearSelectedPlaylist, createPlaylistName, updatePlaylistName,removePlaylistName, addTrackToSelectedPlaylist, removeTrackFromSelectedPlaylist} = TracksSlice.actions;
+export const {clearServerError, selectPlaylist, clearSelectedPlaylist, createPlaylistName, updatePlaylistName,removePlaylistName, addTrackToSelectedPlaylist, removeTrackFromSelectedPlaylist, removeSpotifyTrackFromPlaylist} = TracksSlice.actions;

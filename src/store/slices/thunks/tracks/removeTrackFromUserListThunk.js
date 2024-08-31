@@ -2,8 +2,8 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { asyncThunkError } from "../../../../helper/asyncThunkError";
 
-export const addTrackToUserListThunk = createAsyncThunk(
-   'tracks/addTrackToUserListThunk',
+export const removeTrackFromUserListThunk = createAsyncThunk(
+   'tracks/removeTrackFromUserListThunk',
    async({playlist, track, navigate}, thunkAPI) => {
       const state = thunkAPI.getState();
       const accessToken = state.auth.accessToken;
@@ -14,10 +14,15 @@ export const addTrackToUserListThunk = createAsyncThunk(
 
       try {
          const data = {
-            "uris": ["spotify:" + track.type + ":" + track.id]
+            "tracks": [
+               {
+                  "uri": ["spotify:" + track.type + ":" + track.id]
+               }
+            ]
          };
          console.log(data);
-         const response = await axios.post('https://api.spotify.com/v1/playlists/' + playlist.id + '/tracks', data, {
+         console.log(playlist);
+         const response = await axios.delete('https://api.spotify.com/v1/playlists/' + playlist.id + '/tracks', data, {
                headers: {
                   'Authorization': `Bearer ${accessToken}`,
                   'Content-Type' : 'application/json'

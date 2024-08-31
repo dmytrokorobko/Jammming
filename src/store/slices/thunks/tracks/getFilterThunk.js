@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { getExtractedTracks } from "../../../../helper/getExtractedTracks";
+import { asyncThunkError } from "../../../../helper/asyncThunkError";
 
 export const getFilterThunk = createAsyncThunk(
    'tracks/getFilterThunk',
@@ -25,7 +26,7 @@ export const getFilterThunk = createAsyncThunk(
          return getExtractedTracks(response.data.tracks.items);
       } catch (err) {
          console.log(err);
-         return thunkAPI.rejectWithValue(err.response?.data?.message || 'An error occurred');
+         return asyncThunkError(err, thunkAPI.rejectWithValue);         
       }
    }
 )

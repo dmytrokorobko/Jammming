@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { asyncThunkError } from "../../../../helper/asyncThunkError";
 
 export const getUsernameThunk = createAsyncThunk(
    'auth/getUsernameThunk',
@@ -20,7 +21,7 @@ export const getUsernameThunk = createAsyncThunk(
          return response.data;
       } catch (err) {
          console.log(err);
-         return thunkAPI.rejectWithValue(err.response?.data?.message || 'An error occurred');
+         return asyncThunkError(err, thunkAPI.rejectWithValue);         
       }
    }
 )

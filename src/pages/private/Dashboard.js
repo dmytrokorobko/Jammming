@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { getRecommendationThunk } from "../../store/slices/thunks/tracks/getRecommendationThunk";
 import { getFilterThunk } from "../../store/slices/thunks/tracks/getFilterThunk";
 import { getUserPlaylistsThunk } from "../../store/slices/thunks/tracks/getUserPlaylistsThunk";
-import { addTrackToSelectedPlaylist, clearSelectedPlaylist, clearServerError, createPlaylistName, removePlaylistName, removeTrackFromSelectedPlaylist, selectPlaylist, updatePlaylistName } from "../../store/slices/TracksSlice";
+import { addTrackToSelectedPlaylist, clearSelectedPlaylist, clearServerError, createPlaylistName, removePlaylistName, removeSpotifyTrackFromPlaylist, removeTrackFromSelectedPlaylist, selectPlaylist, updatePlaylistName } from "../../store/slices/TracksSlice";
 import { getPlaylistTracksThunk } from "../../store/slices/thunks/tracks/getPlaylistTracksThunk";
 import { generateUniqueId } from "../../helper/generateUniqueId";
 import { ServerNotifications } from "../../components/ServerNotifications";
@@ -20,6 +20,7 @@ import { refreshAccessTokenThunk } from "../../store/slices/thunks/auth/refreshA
 import { addTrackToUserListThunk } from "../../store/slices/thunks/tracks/addTrackToUserListThunk";
 import { createPlaylistThunk } from "../../store/slices/thunks/tracks/createPlaylistThunk";
 import { deletePlaylistThunk } from "../../store/slices/thunks/tracks/deletePlaylistThunk";
+import { removeTrackFromUserListThunk } from "../../store/slices/thunks/tracks/removeTrackFromUserListThunk";
 
 export const Dashboard = () => {
    const user = useSelector(state => state.auth.user);
@@ -156,21 +157,29 @@ export const Dashboard = () => {
    }
 
    const addTrackToUserList = async (track) => {
-      if (selectedPlaylist) {
-         dispatch(addTrackToSelectedPlaylist(track));
+      if (selectedPlaylist) {         
          if (!playlistTracks.some(t => t.id === track.id)) {
             try {
                await dispatch(addTrackToUserListThunk({playlist: selectedPlaylist, track, navigate})).unwrap();
+               dispatch(addTrackToSelectedPlaylist(track));
             } catch(err) {
-               dispatch(removeTrackFromSelectedPlaylist(track));
+               //dispatch(removeTrackFromSelectedPlaylist(track));
             }            
+         } else {
+            setClientError('Selected track is already in playlist');
+            dispatch(removeSpotifyTrackFromPlaylist(track));
          } 
       } else setClientError('First select playlist to add tracks');
    }
 
-   const removeTrackFromUserList = (track) => {
-      if (selectPlaylist) {
-         dispatch(removeTrackFromSelectedPlaylist(track));
+   const removeTrackFromUserList = async(track) => {
+      if (selectedPlaylist) {
+         try {
+            await dispatch(removeTrackFromUserListThunk({playlist: selectedPlaylist, track, navigate})).unwrap();
+            dispatch(removeTrackFromSelectedPlaylist(track));
+         } catch (err) {
+
+         }
       }
    }
 
