@@ -1,6 +1,6 @@
 {
   "name": "030-jammming",
-  "homepage": "https://dmytrokorobko.net/jammming",
+  "homepage": "/jammming",
   "version": "0.1.5",
   "private": true,
   "dependencies": {

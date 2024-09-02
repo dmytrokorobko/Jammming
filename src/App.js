@@ -14,7 +14,7 @@ import { Suspense } from 'react';
 function App() {
   return (
     <Provider store={store}>
-      <BrowserRouter basename='/Jammming'>
+      <BrowserRouter basename='/jammming'>
         <Routes>
           {/* Public Routes */}
           <Route element={<BaseLayout />}>
